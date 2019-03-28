@@ -255,7 +255,7 @@ class message_t
         memcpy(data(), data_, size_);
     }
 
-    inline message_t(void *data_, size_t size_, free_fn *ffn_, void *hint_ = NULL)
+    inline message_t(void *data_, size_t size_, free_fn *ffn_, void *hint_ = nullptr)
     {
         int rc = zmq_msg_init_data(&msg, data_, size_, ffn_, hint_);
         if (rc != 0)
@@ -321,7 +321,7 @@ class message_t
         memcpy(data(), data_, size_);
     }
 
-    inline void rebuild(void *data_, size_t size_, free_fn *ffn_, void *hint_ = NULL)
+    inline void rebuild(void *data_, size_t size_, free_fn *ffn_, void *hint_ = nullptr)
     {
         int rc = zmq_msg_close(&msg);
         if (rc != 0)
@@ -391,7 +391,7 @@ class message_t
     inline const char *gets(const char *property_)
     {
         const char *value = zmq_msg_gets(&msg, property_);
-        if (value == NULL)
+        if (value == nullptr)
             throw error_t();
         return value;
     }
@@ -480,7 +480,7 @@ class context_t
     inline context_t()
     {
         ptr = zmq_ctx_new();
-        if (ptr == NULL)
+        if (ptr == nullptr)
             throw error_t();
     }
 
@@ -489,7 +489,7 @@ class context_t
                               int max_sockets_ = ZMQ_MAX_SOCKETS_DFLT)
     {
         ptr = zmq_ctx_new();
-        if (ptr == NULL)
+        if (ptr == nullptr)
             throw error_t();
 
         int rc = zmq_ctx_set(ptr, ZMQ_IO_THREADS, io_threads_);
@@ -500,7 +500,7 @@ class context_t
     }
 
 #ifdef ZMQ_HAS_RVALUE_REFS
-    inline context_t(context_t &&rhs) ZMQ_NOTHROW : ptr(rhs.ptr) { rhs.ptr = NULL; }
+    inline context_t(context_t &&rhs) ZMQ_NOTHROW : ptr(rhs.ptr) { rhs.ptr = nullptr; }
     inline context_t &operator=(context_t &&rhs) ZMQ_NOTHROW
     {
         std::swap(ptr, rhs.ptr);
@@ -521,12 +521,12 @@ class context_t
 
     inline void close() ZMQ_NOTHROW
     {
-        if (ptr == NULL)
+        if (ptr == nullptr)
             return;
 
         int rc = zmq_ctx_destroy(ptr);
         ZMQ_ASSERT(rc == 0);
-        ptr = NULL;
+        ptr = nullptr;
     }
 
     //  Be careful with this, it's probably only useful for
@@ -536,7 +536,7 @@ class context_t
 
     inline ZMQ_EXPLICIT operator void const *() const ZMQ_NOTHROW { return ptr; }
 
-    inline operator bool() const ZMQ_NOTHROW { return ptr != NULL; }
+    inline operator bool() const ZMQ_NOTHROW { return ptr != nullptr; }
 
   private:
     void *ptr;
@@ -588,8 +588,8 @@ class socket_t
 #ifdef ZMQ_HAS_RVALUE_REFS
     inline socket_t(socket_t &&rhs) ZMQ_NOTHROW : ptr(rhs.ptr), ctxptr(rhs.ctxptr)
     {
-        rhs.ptr = NULL;
-        rhs.ctxptr = NULL;
+        rhs.ptr = nullptr;
+        rhs.ctxptr = nullptr;
     }
     inline socket_t &operator=(socket_t &&rhs) ZMQ_NOTHROW
     {
@@ -606,7 +606,7 @@ class socket_t
 
     inline void close() ZMQ_NOTHROW
     {
-        if (ptr == NULL)
+        if (ptr == nullptr)
             // already closed
             return;
         int rc = zmq_close(ptr);
@@ -677,13 +677,13 @@ class socket_t
             throw error_t();
     }
 
-    inline bool connected() const ZMQ_NOTHROW { return (ptr != NULL); }
+    inline bool connected() const ZMQ_NOTHROW { return (ptr != nullptr); }
 
     inline size_t send(const void *buf_, size_t len_, int flags_ = 0)
     {
         int nbytes = zmq_send(ptr, buf_, len_, flags_);
         if (nbytes >= 0)
-            return (size_t) nbytes;
+            return static_cast<size_t>(nbytes);
         if (zmq_errno() == EAGAIN)
             return 0;
         throw error_t();
@@ -713,7 +713,7 @@ class socket_t
     {
         int nbytes = zmq_recv(ptr, buf_, len_, flags_);
         if (nbytes >= 0)
-            return (size_t) nbytes;
+            return static_cast<size_t>(nbytes);
         if (zmq_errno() == EAGAIN)
             return 0;
         throw error_t();
@@ -750,7 +750,7 @@ class socket_t
     {
         ctxptr = context_.ptr;
         ptr = zmq_socket(context_.ptr, type_);
-        if (ptr == NULL)
+        if (ptr == nullptr)
             throw error_t();
     }
 
@@ -764,12 +764,12 @@ class socket_t
 class monitor_t
 {
   public:
-    monitor_t() : socketPtr(NULL), monitor_socket(NULL) {}
+    monitor_t() : socketPtr(nullptr), monitor_socket(nullptr) {}
 
     virtual ~monitor_t()
     {
         if (socketPtr)
-            zmq_socket_monitor(socketPtr, NULL, 0);
+            zmq_socket_monitor(socketPtr, nullptr, 0);
 
         if (monitor_socket)
             zmq_close(monitor_socket);
@@ -780,8 +780,8 @@ class monitor_t
     monitor_t(monitor_t &&rhs) ZMQ_NOTHROW : socketPtr(rhs.socketPtr),
                                              monitor_socket(rhs.monitor_socket)
     {
-        rhs.socketPtr = NULL;
-        rhs.monitor_socket = NULL;
+        rhs.socketPtr = nullptr;
+        rhs.monitor_socket = nullptr;
     }
 
     socket_t &operator=(socket_t &&rhs) ZMQ_DELETED_FUNCTION;
@@ -951,9 +951,9 @@ class monitor_t
     void abort()
     {
         if (socketPtr)
-            zmq_socket_monitor(socketPtr, NULL, 0);
+            zmq_socket_monitor(socketPtr, nullptr, 0);
 
-        socketPtr = NULL;
+        socketPtr = nullptr;
     }
 #endif
     virtual void on_monitor_started() {}
